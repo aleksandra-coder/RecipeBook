@@ -61,12 +61,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $category = test_input($_POST["category"]);
         }
-
-        if (empty($_POST["recipeID"])) {
-         $recipeIDErr = "Dish number is required";
-     } else {
-         $recipeID = test_input($_POST["recipeID"]);
-         }
      
     
     if (empty($_POST["ingredients"])) {
@@ -81,6 +75,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $instructions = test_input($_POST["instructions"]);
         }
+
+    if (empty($_POST["addPhoto"])) {
+            $addPhoto = "";
+        } else {
+            $addPhoto = test_input($_POST["addPhoto"]);
+            }
     
   }
 
@@ -103,18 +103,45 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
-echo "Connected successfully";
+echo " ";
 
-// insert values into the table (user input)
-$sql = "INSERT INTO recipe (recipeID, RecipeName, Servings, PreparationTime, Ratings)
-VALUES ('$recipeID', '$dishName', '$Servings', '$CookingTime', '$rating')";
+    
+//Next query is to count the recipeID of a new recipe according to the amount of existing recipes
+$query = "SELECT recipeID FROM recipe"; // to fetch recipeIDs from the table
+
+$result = mysqli_query($conn, $query); // execute the query and store the result set 
+      
+    if ($result) 
+    { 
+        // return the number of rows in the table
+        $row = mysqli_num_rows($result); 
+          
+           if ($row) 
+              { 
+                 $row++; //the number of rows will be added by one
+              } 
+              
+        mysqli_free_result($result); // close the result
+    } 
+
+    // this piece of code was supposed to add a photo to the database, but I think it doesn't work
+    if (isset($_POST['submit'])) {
+        $file = addslashes(file_get_contents($_FILES["addPhoto"]["tmp_name"]));
+    }
 
 
+     // insert values into the table (user input)
+     $sql = "INSERT INTO recipe (recipeID, RecipeName, Servings, PreparationTime, Ratings, Ingredients, Instructions, Images)
+     VALUES ('$row', '$dishName', '$Servings', '$CookingTime', '$rating', '$ingredients', '$instructions', '$addPhoto')";
+
+    
+
+    
 
   if ($conn->query($sql) === TRUE) {
-   echo "New record created successfully";
+   echo "";
  } else {
-   echo "Error: " . $sql . "<br>" . $conn->error;
+   echo "";
  }
  
  $conn->close();
@@ -123,10 +150,10 @@ VALUES ('$recipeID', '$dishName', '$Servings', '$CookingTime', '$rating')";
 
 
 <!-- Navigation -->
-<nav class="navbar navbar-custom">
+<nav class="navbar navbar-custom p-3">
    <a class="navbar-brand">RecipeBook</a>
    <a href="drinks.php">Drinks</a>
-   <a class="btn btn-primary" href="addnew.php" role="button">&#43; Add a recipe</a>
+   <a class="btn btn-primary" href="addnewrecipe.php" role="button">&#43; Add a recipe</a>
 </nav>
 
 
@@ -135,20 +162,18 @@ VALUES ('$recipeID', '$dishName', '$Servings', '$CookingTime', '$rating')";
    <div class="row justify-content-around">
       <div class="col-lg-6">
          <h4>Add a new recipe</h4>
-         <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" >
+         <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" enctype="multipart/form-data">
             <div class="form-group">
                <div class="row">
                <div class="col">
                       <label for="addPhoto">Add a photo</label> 
                   </div>
                   <div class="col">
-                     <input type="file" class="form-control-file" id="addPhoto">
+                     <input type="file" class="form-control-file" id="addPhoto" name="addPhoto">
                   </div>
                 </div>
             </div>
             <div class="form-group">
-            <!-- I changed the type from email to text -->
-            <!-- I added to all the fields name variables so they can be executed by php to display the inserted data -->
                <label>Name of the dish</label><input type="text" class="form-control" name="dishName" id="dishName" value="<?php echo $dishName;?>">
                <span class="error">* <?php echo $dishNameErr;?></span>
             </div>
@@ -165,10 +190,6 @@ VALUES ('$recipeID', '$dishName', '$Servings', '$CookingTime', '$rating')";
                   <option disabled>Desserts</option>
                </select>
                   </div>
-                  <div class="col">
-                  <label>Dish number</label><input type="text" class="form-control" name="recipeID" value="<?php echo $recipeID;?>">
-                  <span class="error">* <?php echo $recipeIDErr;?></span>   
-               </div>
             </div>
             <div class="form-group">
                <div class="row">
@@ -177,7 +198,7 @@ VALUES ('$recipeID', '$dishName', '$Servings', '$CookingTime', '$rating')";
                   <span class="error">* <?php echo $ServingsErr;?></span>
                   </div>
                   <div class="col">
-                  <label>Cooking time</label><input type="text" class="form-control" name="CookingTime" value="<?php echo $CookingTime;?>">
+                  <label>Cooking time (min)</label><input type="text" class="form-control" name="CookingTime" value="<?php echo $CookingTime;?>">
                   <span class="error">* <?php echo $CookingTimeErr;?></span>
                   </div>
                   <div class="col">
@@ -229,7 +250,7 @@ VALUES ('$recipeID', '$dishName', '$Servings', '$CookingTime', '$rating')";
    </div>
 </div>
 
-<footer id="sticky-footer" class="py-4">
+<footer class="footer-copyright text-center py-3">
     <div class="container number-center">
       <small>Copyright &copy; Laura Pelkonen &amp; Aleksandra Postola 
          <?php
