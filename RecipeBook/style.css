@@ -29,6 +29,7 @@ h4 {
     color: #0b537a; 
     font-size: 25px;
     font-weight: bold;
+    margin-bottom: 20px;
 }
 
 h5 {
@@ -60,6 +61,7 @@ h5 {
 
 .card-img-top {
     height: 300px;
+    width: 300px;
     object-fit: cover;
 }
 
@@ -82,11 +84,16 @@ svg {
     margin-left: 15px;
 }
 
-/*Styling Add recipe page*/
+/*Styling login & Add recipe pages*/
 
 .col-lg-6 {
     background-color:#fdf6e6;
     padding: 40px;
+}
+
+.col-lg-4 {
+    background-color:#fdf6e6;
+    padding: 50px;
 }
 
 .col-md-8 {
@@ -99,3 +106,4 @@ label {
     color: #226183;
     font-size: 20px;   
 }
+

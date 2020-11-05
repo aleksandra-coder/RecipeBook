@@ -14,12 +14,14 @@
 <!-- php code here -->
 
 <?php
+    
 // define variables and set to empty values
-$dishNameErr = $ServingsErr = $CookingTimeErr = $categoryErr = $ingredientsErr = $instructionsErr = $addPhotoErr = "";
-$dishName = $Servings = $CookingTime = $category = $ingredients = $instructions = $addPhoto = "";
+$dishNameErr = $ServingsErr = $CookingTimeErr = $categoryErr = $ingredientsErr = $instructionsErr = "";
+$dishName = $Servings = $CookingTime = $category = $ingredients = $instructions = "";
 
-// validation - checking if fields are left empty and if required to fill out, the message is displayed
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// checking if fields are left empty and if required to fill out, the message is displayed
+// if (isset($_POST['submit'] 
+  if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($_POST["dishName"])) {
       $dishNameErr = "Dish name is required";
     } else {
@@ -55,12 +57,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
      } else {
          $rating = test_input($_POST["rating"]);
          }
-
-    if (empty($_POST["category"])) {
-        $categoryErr = "Category is required";
-    } else {
-        $category = test_input($_POST["category"]);
-        }
      
     
     if (empty($_POST["ingredients"])) {
@@ -75,15 +71,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $instructions = test_input($_POST["instructions"]);
         }
+      
+      //   adding photos, first setting variables
+        $addPhoto = $_FILES['addPhoto'];
 
-    if (empty($_POST["addPhoto"])) {
-            $addPhoto = "";
-        } else {
-            $addPhoto = test_input($_POST["addPhoto"]);
+        $fileName = $_FILES['addPhoto']['name'];
+        $fileTmpName = $_FILES['addPhoto']['tmp_name'];
+        $fileSize = $_FILES['addPhoto']['size'];
+        $fileError = $_FILES['addPhoto']['error'];
+        $fileType = $_FILES['addPhoto']['type'];
+
+      //   defining files extensions
+        $fileExt = explode( '.', $fileName );
+        $fileActualExt = strtolower(end($fileExt));
+// which extensions are allowed
+        $allowed = array('jpg', 'jpeg', 'gif', 'png');
+
+      // defining what criteria must be met, file size, name
+      if (!empty($_POST["addPhoto"])) {
+         if(in_array($fileActualExt, $allowed)) {
+            if($fileError === 0) {
+               if ($fileSize <= MAX_FILE_SIZE) {
+                  // creating unique file name and path
+                  $fileDestination = RECIPE_UPLOAD_PATH . time() . $addPhoto; 
+                  // moving the the images folder
+                  move_uploaded_file($fileTmpName, $fileDestination);
+                  $conn = new mysqli($servername, $username, $password, $dbname);
+                  header("Location: drinks.php?uploadsuccess");
+               } else {
+                  echo "Your file is too big.";
+               }
+            } else {
+               echo "There was an error uploading your file.";
             }
+        } else {
+           echo "You cannot upload files of this type.";
+        }
+      } else {
+         echo "You didn't upload any file";
+      }
+ }
     
-  }
-//  input validation
+
   function test_input($data) {
     $data = trim($data);
     $data = stripslashes($data);
@@ -92,19 +121,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   }
 
   // connecting to the server
-$servername = "127.0.0.1:51010";
-$username = "azure";
-$password = "6#vWHD_$";
-$dbname = "localdb";
-  // Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
-}
-echo " ";
-
+require_once "config.php";
+    
+//  refering to application constants
+require_once "appvars.php";
     
 //Next query is to count the recipeID of a new recipe according to the amount of existing recipes
 $query = "SELECT recipeID FROM recipe"; // to fetch recipeIDs from the table
@@ -124,22 +144,18 @@ $result = mysqli_query($conn, $query); // execute the query and store the result
         mysqli_free_result($result); // close the result
     } 
 
-    // this piece of code was supposed to add a photo to the database, but I think it doesn't work
-    if (isset($_POST['submit'])) {
-        $file = addslashes(file_get_contents($_FILES["addPhoto"]["tmp_name"]));
-    }
 
 
-     // insert values into the table (user input)
+    // insert values into the table (user input)
      $sql = "INSERT INTO recipe (recipeID, RecipeName, Servings, PreparationTime, Ratings, Ingredients, Instructions, Images, DateAdded, TimeAdded)
-     VALUES ('$row', '$dishName', '$Servings', '$CookingTime', '$rating', '$ingredients', '$instructions', '$addPhoto', CURDATE(), CURTIME())";
+     VALUES ('$row', '$dishName', '$Servings', '$CookingTime', '$rating', '$ingredients', '$instructions', '$addPhoto', CURDATE(), CURTIME())";  
 
-    
 
-    
+
 
   if ($conn->query($sql) === TRUE) {
    echo "";
+   header("location: drinks.php");
  } else {
    echo "";
  }
@@ -154,6 +170,9 @@ $result = mysqli_query($conn, $query); // execute the query and store the result
    <a class="navbar-brand">RecipeBook</a>
    <a href="drinks.php">Drinks</a>
    <a class="btn btn-primary" href="addnewrecipe.php" role="button">&#43; Add a recipe</a>
+   <a class="btn btn-warning" href="deleterecipe.php" role="button">Delete a recipe</a>
+   <a class="btn btn-success" href="updaterecipe.php" role="button">Update a recipe</a>
+   <a class="btn btn-primary" href="logout.php" role="button">Logout</a>
 </nav>
 
 
@@ -162,11 +181,13 @@ $result = mysqli_query($conn, $query); // execute the query and store the result
    <div class="row justify-content-around">
       <div class="col-lg-6">
          <h4>Add a new recipe</h4>
+         <!-- This enctype attribute tells that we will be adding files like images -->
          <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" enctype="multipart/form-data">
             <div class="form-group">
                <div class="row">
                <div class="col">
                       <label for="addPhoto">Add a photo</label> 
+                      <input type="hidden" name="max_file_size" value="MAX_FILE_SIZE">
                   </div>
                   <div class="col">
                      <input type="file" class="form-control-file" id="addPhoto" name="addPhoto">
@@ -179,20 +200,6 @@ $result = mysqli_query($conn, $query); // execute the query and store the result
             </div>
             <div class="form-group">
                <div class="row">
-                  <div class="col"> 
-               <select class="form-control" id="category" name="category" value="<?php echo $category;?>">
-               <span class="error">* <?php echo $categoryErr;?></span>
-                  <option selected>Category</option>
-                  <option>Drinks</option>
-                  <option disabled>Starters/Snacks</option>
-                  <option disabled>Salads</option>
-                  <option disabled>Main Courses</option>
-                  <option disabled>Desserts</option>
-               </select>
-                  </div>
-            </div>
-            <div class="form-group">
-               <div class="row">
                   <div class="col">
                   <label>Number of servings</label><input type="text" class="form-control" name="Servings" value="<?php echo $Servings;?>">
                   <span class="error">* <?php echo $ServingsErr;?></span>
@@ -202,8 +209,8 @@ $result = mysqli_query($conn, $query); // execute the query and store the result
                   <span class="error">* <?php echo $CookingTimeErr;?></span>
                   </div>
                   <div class="col">
-                  <label>Rating</label><select class="form-control"  id="rating" name="rating" value="<?php echo $rating;?>">
-                        <option selected>Rating</option>
+                  <label>Rating</label><select class="form-control"  id="rating" name="rating">
+                        value="<?php echo $rating;?>"<option selected>Rating</option>
                         <option>1</option>
                         <option>2</option>
                         <option>3</option>
@@ -237,15 +244,12 @@ $result = mysqli_query($conn, $query); // execute the query and store the result
             echo "<br>";
             echo $CookingTime;
             echo "<br>";
-            echo $category;
-            echo "<br>";
             echo $rating;
             echo "<br>";
             echo $ingredients;
             echo "<br>";
             echo $instructions;
          ?>
-
       </div>
    </div>
 </div>
@@ -258,7 +262,7 @@ $result = mysqli_query($conn, $query); // execute the query and store the result
             ?>
          RecipeBook</small>
     </div>
-  </footer>
+</footer>
     
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>

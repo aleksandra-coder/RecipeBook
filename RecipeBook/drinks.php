@@ -12,23 +12,26 @@
 <body>
 
 <?php
+    
 // connecting to the server
-$servername = "127.0.0.1:51010";
-$username = "azure";
-$password = "6#vWHD_$";
-$dbname = "localdb";
-  // Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+require_once "config.php";
 
-   // Check connection
-   if ($conn->connect_error) {
-     die("Connection failed: " . $conn->connect_error);
-   }
-   echo " ";
+//  refering to application constants
+require_once "appvars.php";
+
+// Initialize the session
+session_start();
+    
+// Check if the user is logged in, if not then redirect to drinks page
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: login.php");
+    exit;
+}
 
    //select all rows from recipe table, order the recipes in alphabetical order
    $sql = "SELECT * FROM recipe ORDER BY RecipeName;"; 
    $result = mysqli_query($conn, $sql);
+
    
     
 $conn->close();
@@ -44,6 +47,7 @@ $conn->close();
    <a class="btn btn-primary" href="addnewrecipe.php" role="button">&#43; Add a recipe</a>
    <a class="btn btn-warning" href="deleterecipe.php" role="button">Delete a recipe</a>
    <a class="btn btn-success" href="updaterecipe.php" role="button">Update a recipe</a>
+   <a class="btn btn-primary" href="logout.php" role="button">Logout</a>
 </nav>
 
 
@@ -53,7 +57,16 @@ $conn->close();
       <div class="card-columns">
          <?php while ($row = mysqli_fetch_array($result)){ ?> <!-- for printing all rows from the table -->
             <div class="card">
-                  <img class="card-img-top" src="images/chocolate.jpg" alt="Card image cap">
+            <img class="card-img-top" >
+             <!-- // uploading photos from the defined folder -->
+              <?php  
+              if ( is_file (RECIPE_UPLOAD_PATH . $row['Images']) && filesize (RECIPE_UPLOAD_PATH . $row['Images']) > 0 ) {
+               echo '<img src=" ' . RECIPE_UPLOAD_PATH . $row['Images'] . '" alt="recipe image">';
+               } else {
+               echo '<img src=" ' . RECIPE_UPLOAD_PATH . 'unverified.gif' . '" alt="unverified image">';
+               } 
+               ?>
+                  <!-- <img class="card-img-top" src="images/chocolate.jpg" alt="Card image cap"> -->
                <div class="card-body">
                   <h5 class="card-title"><?php echo $row['RecipeName']; ?></h5>
                   <h6 class="card-subtitle mb-2 text-muted">
@@ -71,8 +84,6 @@ $conn->close();
                   <ul class="list-group list-group-flush">
                      <h5>Ingredients</h5>
                      <li class="list-group-item"><?php echo $row ['Ingredients']; ?></li>
-                     <!-- <li class="list-group-item"></li>
-                     <li class="list-group-item"></li> -->
                   </ul>
                   <h5>Instructions</h5>
                   <p class="card-text"> <?php echo $row ['Instructions']; ?></p> 

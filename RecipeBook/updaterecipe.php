@@ -12,19 +12,11 @@
 <body>
 
 <?php 
-// connecting to the server
-$servername = "127.0.0.1:51010";
-$username = "azure";
-$password = "6#vWHD_$";
-$dbname = "localdb";
-  // Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
-}
-echo " ";
+  // connecting to the server
+  require_once "config.php";
+    
+  //  refering to application constants
+  require_once "appvars.php";
 
 // define variables and set to empty values
 $dishNameErr = $ServingsErr = $CookingTimeErr = $ingredientsErr = $instructionsErr = $addPhotoErr = "";
