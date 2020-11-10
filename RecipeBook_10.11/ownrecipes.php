@@ -97,14 +97,14 @@ $conn->close(); //close the connection
          <?php while ($row = mysqli_fetch_array($result)){ ?> <!-- for printing all rows from the table -->
           <div class="cardcol col-sm-6 col-lg-4">
             <div class="card">
+               <!-- uploading recipe image to the page -->
             <?php  
               if ( is_file (RECIPE_UPLOAD_PATH . $row['Images']) && filesize (RECIPE_UPLOAD_PATH . $row['Images']) > 0 ) {
-               echo '<img src=" ' . RECIPE_UPLOAD_PATH . $row['Images'] . '" alt="recipe image" />';
+               echo '<img class="card-img-top" src=" ' . RECIPE_UPLOAD_PATH . $row['Images'] . '" alt="recipe image" />';
                } else {
-               echo '<img src=" ' . RECIPE_UPLOAD_PATH . 'unverified.gif' . '" alt="unverified image" />';
+               echo '<img class="card-img-top" src=" ' . RECIPE_UPLOAD_PATH . 'unverified.gif' . '" alt="unverified image" />';
                } 
                ?>
-                  <!-- <img class="card-img-top" src="images/chocolate.jpg" alt="Card image cap"> -->
                <div class="card-body">
                   <h5 class="card-title"><?php echo $row['RecipeName']; ?></h5>
                   <h6 class="card-subtitle mb-2 text-muted">

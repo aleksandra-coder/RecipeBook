@@ -16,9 +16,16 @@
 <?php
     
 // define variables and set to empty values
-$dishNameErr = $ServingsErr = $CookingTimeErr = $categoryErr = $ingredientsErr = $instructionsErr = "";
+$dishNameErr = $ServingsErr = $CookingTimeErr = $categoryErr = $ingredientsErr = $instructionsErr = $addPhotoErr = "";
 $dishName = $Servings = $CookingTime = $rating = $category = $ingredients = $instructions = $addPhoto = "";
 
+// input validation function
+function test_input($data) {
+  $data = trim($data);
+  $data = stripslashes($data);
+  $data = htmlspecialchars($data);
+  return $data;
+}
 // checking if fields are left empty and if required to fill out, the message is displayed
   if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($_POST["dishName"])) {
@@ -99,26 +106,20 @@ if (!empty($_POST["addPhoto"])) {
             // $conn = new mysqli($servername, $username, $password, $dbname);
             header("Location: drinks.php?uploadsuccess");
          } else {
-            echo "Your file is too big.";
+            $addPhotoErr = "Your file is too big.";
          }
       } else {
-         echo "There was an error uploading your file.";
+        $addPhotoErr = "There was an error uploading your file.";
       }
   } else {
-     echo "You cannot upload files of this type.";
+    $addPhotoErr = "You cannot upload files of this type.";
   }
 } else {
-   echo "You didn't upload any file";
+  $addPhotoErr = "You didn't upload any file";
 }
  }
     
 
-  function test_input($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-  }
 
   // connecting to the server
 require_once "config.php";
@@ -223,6 +224,7 @@ $sql = "INSERT INTO recipe (userID, RecipeName, Servings, PreparationTime, Ratin
                   </div>
                   <div class="col">
                      <input type="file" class="form-control-file" id="addPhoto" name="addPhoto">
+                     <span class="error">* <?php echo $addPhotoErr;?></span>
                   </div>
                 </div>
             </div>

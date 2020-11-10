@@ -98,9 +98,9 @@ $conn->close(); //close the connection
             <div class="card">
             <?php  
               if ( is_file (RECIPE_UPLOAD_PATH . $row['Images']) && filesize (RECIPE_UPLOAD_PATH . $row['Images']) > 0 ) {
-               echo '<img src=" ' . RECIPE_UPLOAD_PATH . $row['Images'] . '" alt="recipe image" />';
+               echo '<img class="card-img-top" src=" ' . RECIPE_UPLOAD_PATH . $row['Images'] . '" alt="recipe image" />';
                } else {
-               echo '<img src=" ' . RECIPE_UPLOAD_PATH . 'unverified.gif' . '" alt="unverified image" />';
+               echo '<img class="card-img-top" src=" ' . RECIPE_UPLOAD_PATH . 'unverified.gif' . '" alt="unverified image" />';
                } 
                ?>
                   <!-- <img class="card-img-top" src="images/chocolate.jpg" alt="Card image cap"> -->

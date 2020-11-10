@@ -38,8 +38,15 @@ $result = mysqli_query($conn, $sqlDelete);
 $dishNameErr = $ServingsErr = $CookingTimeErr = $ingredientsErr = $instructionsErr = $addPhotoErr = "";
 $dishName = $Servings = $CookingTime = $rating = $ingredients = $instructions = $addPhoto = "";
 
-//  input validation
+// input validation function
+function test_input($data) {
+   $data = trim($data);
+   $data = stripslashes($data);
+   $data = htmlspecialchars($data);
+   return $data;
+ }
 
+//  input validation
 $dishName = test_input($_POST['dishName']);
 if (!preg_match("/^[a-zA-Z-' ]*$/",$dishName)) {
     $dishNameErr = "Only letters and white space allowed";
@@ -89,35 +96,31 @@ $allowed = array('jpg', 'jpeg', 'gif', 'png');
 
 // defining what criteria must be met, file size, name
 if (!empty($_POST["addPhoto"])) {
-if(in_array($fileActualExt, $allowed)) {
- if($fileError === 0) {
-    if ($fileSize <= MAX_FILE_SIZE) {
-       // creating unique file name and path
-       $fileNewName = uniqid ('', true). "." . $fileActualExt;
-       $fileDestination = RECIPE_UPLOAD_PATH . $fileNewName; 
-       // moving to the images folder
-       move_uploaded_file($fileTmpName, $fileDestination);
-       // $conn = new mysqli($servername, $username, $password, $dbname);
-       header("Location: drinks.php?uploadsuccess");
-    } else {
-       echo "Your file is too big.";
-    }
- } else {
-    echo "There was an error uploading your file.";
- }
-} else {
-echo "You cannot upload files of this type.";
-}
-} else {
-echo "You didn't upload any file";
-}
+   if(in_array($fileActualExt, $allowed)) {
+      if($fileError === 0) {
+         if ($fileSize <= MAX_FILE_SIZE) {
+             // creating unique file name and path
+            $fileNewName = uniqid ('', true). "." . $fileActualExt;
+            $fileDestination = RECIPE_UPLOAD_PATH . $fileNewName; 
+            // moving to the images folder
+            move_uploaded_file($fileTmpName, $fileDestination);
+            // $conn = new mysqli($servername, $username, $password, $dbname);
+            header("Location: drinks.php?uploadsuccess");
+         } else {
+            $addPhotoErr = "Your file is too big.";
+         }
+      } else {
+         $addPhotoErr = "There was an error uploading your file.";
+      }
+   } else {
+      $addPhotoErr = "You cannot upload files of this type.";
+      }
+   } else {
+   $addPhotoErr = "You didn't upload any file";
+   }
 
-function test_input($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
+
+
 
 //  sql to update records from recipe table
 $sql = "UPDATE recipe SET Servings ='$Servings', PreparationTime ='$CookingTime', Ratings = '$rating', Ingredients ='$ingredients', Instructions ='$instructions', Images ='$addPhoto' WHERE RecipeName = '$dishName'";
@@ -192,13 +195,11 @@ if ($conn->query($sql) === TRUE) {
                   </div>
                   <div class="col">
                      <input type="file" class="form-control-file" id="addPhoto" name="addPhoto">
+                     <span class="error">* <?php echo $addPhotoErr;?></span>
                   </div>
                 </div>
             </div>
-            <div class="form-group">
-               <!--<label>Name of the dish</label><input type="text" class="form-control" name="dishName" id="dishName" value="<?php echo $dishName;?>">
-               <span class="error">* <?php echo $dishNameErr;?></span>-->
-                
+            <div class="form-group">                
                <label>Name of the dish</label>
                <select class="form-control"  name="dishName" id="dishName"><option selected disabled>Choose the recipe</option>
                     <?php while ($row = mysqli_fetch_array($result)){ ?>
